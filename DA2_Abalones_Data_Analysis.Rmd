@@ -54,12 +54,14 @@ str(mydata)
 
 mydata$VOLUME <- mydata$LENGTH * mydata$DIAM * mydata$HEIGHT
 mydata$RATIO  <- mydata$SHUCK / mydata$VOLUME
-s  <- rockchalk::skewness(mydata$RATIO)
-k  <- rockchalk::kurtosis(mydata$RATIO, excess = FALSE)
-k2 <- rockchalk::kurtosis(mydata$RATIO)
+
+s <- rockchalk::skewness(mydata$RATIO)
+k <- rockchalk::kurtosis(mydata$RATIO)
+
+paste("Skewness is:", round(s, 3))
+paste("Kurtosis is:", round(k, 3))
 
 par(mfrow = c(1, 2))
-
 hist(mydata$RATIO, main = "Histogram of Shuck / Vol Ratio", col = "cadetblue", xlab = "Ratio")
 qqnorm(mydata$RATIO, main = "Q-Q Plot", col = "burlywood4")
 qqline(mydata$RATIO)
@@ -71,18 +73,19 @@ qqline(mydata$RATIO)
 ```{r Part_1b}
 
 mydata$L_RATIO <- log10(mydata$RATIO)
-s  <- rockchalk::skewness(mydata$L_RATIO)
-k  <- rockchalk::kurtosis(mydata$L_RATIO, excess = FALSE)
-k2 <- rockchalk::kurtosis(mydata$L_RATIO)
+
+s1 <- rockchalk::skewness(mydata$L_RATIO)
+k1 <- rockchalk::kurtosis(mydata$L_RATIO)
+
+paste("Skewness is:", round(s1, 3))
+paste("Kurtosis is:", round(k1, 3))
 
 par(mfrow = c(1, 2))
-
 hist(mydata$L_RATIO, main = "Histogram of Log Ratio", col = "deepskyblue", xlab = "Log Ratio")
 qqnorm(mydata$L_RATIO, main = "Q-Q Plot", col = "burlywood4")
 qqline(mydata$L_RATIO)
 
 par(mfrow = c(1, 1))
-
 boxplot(mydata$L_RATIO ~ mydata$CLASS, main = "Boxplots of Log Ratio by Class", ylab = "Frequency",
         xlab = "Distribution by Class", beside = TRUE, col = 'limegreen', outcol = "red")
 
@@ -107,7 +110,7 @@ bartlett.test(L_RATIO ~ CLASS, data = mydata)
 
 ```{r Part_2a}
 
-summary(aov(L_RATIO ~ CLASS + SEX + CLASS:SEX, data = mydata))
+summary(aov(L_RATIO ~ CLASS * SEX, data = mydata))
 summary(aov(L_RATIO ~ CLASS + SEX, data = mydata))
 
 ```
@@ -120,10 +123,7 @@ summary(aov(L_RATIO ~ CLASS + SEX, data = mydata))
 
 ```{r Part_2b}
 
-tuk <- TukeyHSD(aov(L_RATIO ~ CLASS + SEX, data = mydata))
-tuk
-
-plot(tuk)
+TukeyHSD(aov(L_RATIO ~ CLASS + SEX, data = mydata))
 
 ```
 
@@ -154,12 +154,37 @@ table(mydata$SEX, mydata$TYPE)
 
 mydata$TYPE <- rockchalk::combineLevels(mydata$SEX, levs = c("F", "M"), "ADULT")
 
-par(mfrow = c(1, 2))
+par(mfrow = c(1, 3))
 
-hist(mydata$VOLUME[mydata$TYPE == 'I'], main = "Infant Volumes", col = "deepskyblue", xlab = "Volume", ylim = c(0, 120))
+hist(mydata$VOLUME[mydata$TYPE == 'I'], 
+     main = "Infant Volumes", 
+     col = "deepskyblue", 
+     xlab = "Volume", 
+     ylim = c(0, 120))
 axis(side = 1, at = seq(0, 1000, by = 50), labels = FALSE, tcl = -0.2)
 axis(side = 2, at = seq(0, 120, by = 5), labels = FALSE, tcl = -0.2)
-hist(mydata$VOLUME[mydata$TYPE == 'ADULT'], main = "Adult Volumes", col = "forestgreen", xlab = "Volume", ylim = c(0, 150))
+
+hist(mydata$VOLUME[mydata$TYPE == 'ADULT'], 
+     main = "Adult Volumes", 
+     col = "darkseagreen3", 
+     xlab = "Volume", 
+     ylim = c(0, 150))
+axis(side = 1, at = seq(0, 1000, by = 50), labels = FALSE, tcl = -0.2)
+axis(side = 2, at = seq(0, 150, by = 10), labels = FALSE, tcl = -0.2)
+
+hist(mydata$VOLUME[mydata$TYPE == 'I'], 
+     main = "Overlap of Infant\nand Adult Volumes", 
+     col = "deepskyblue", 
+     xlab = "Volume", 
+     ylim = c(0, 150))
+axis(side = 1, at = seq(0, 1000, by = 50), labels = FALSE, tcl = -0.2)
+axis(side = 2, at = seq(0, 120, by = 5), labels = FALSE, tcl = -0.2)
+
+hist(mydata$VOLUME[mydata$TYPE == 'ADULT'],
+     col = rgb(0, .5, 0, 0.5), 
+     xlab = "Volume", 
+     ylim = c(0, 150), 
+     add = T)
 axis(side = 1, at = seq(0, 1000, by = 50), labels = FALSE, tcl = -0.2)
 axis(side = 2, at = seq(0, 150, by = 10), labels = FALSE, tcl = -0.2)
 
@@ -168,7 +193,7 @@ axis(side = 2, at = seq(0, 150, by = 10), labels = FALSE, tcl = -0.2)
 
 **Essay Question: Compare the histograms.  How do the distributions differ? Are there going to be any difficulties separating infants from adults based on VOLUME?**
 
-***Answer: A preponderance of the distributed counts among the infants is within the lower volumes, leading to a right skewed distribution with a few outliers in the very high volumes. Meanwhile, the distribution among the combined adult group, comprised of both male and female variables, is close to normal. More specifically, distribution among the adult volume peaks between 250-450 compared to the peak in infant volume at approximately 175. While this does not necessarily equate to a difficulty, accounting for the volume will be a required part of the equation for separating the two classes of sex due to some overlap. ***
+***Answer: A preponderance of the distributed counts among the infants is within the lower volumes, leading to a right skewed distribution with a few outliers in the very high volumes. Meanwhile, the distribution among the combined adult group, comprised of both male and female variables, is closer to normal but still holds a slight right skew. More specifically, distribution among the adult volume peaks between 250-450 compared to the peak in infant volume at approximately 175. While this does not necessarily equate to a difficulty, overlapping areas between volume ranges 0 - 600 would. Accounting for the volume will be a required part of the equation for separating the two classes of sex due to some overlap. ***
 
 (3)(b) Create a scatterplot of SHUCK versus VOLUME and a scatterplot of their base ten logarithms, labeling the variables as L_SHUCK and L_VOLUME. Please be aware the variables, L_SHUCK and L_VOLUME, present the data as orders of magnitude (i.e. VOLUME = 100 = 10^2 becomes L_VOLUME = 2). Use color to differentiate CLASS in the plots. Repeat using color to differentiate by TYPE. 
 
@@ -218,11 +243,11 @@ summary(model)
 
 **Essay Question:  Interpret the trend in CLASS level coefficient estimates? (Hint:  this question is not asking if the estimates are statistically significant. It is asking for an interpretation of the pattern in these coefficients, and how this pattern relates to the earlier displays).**
 
-***Answer: The estimated coefficients suggest a decrease in L_SHUCK for the higher CLASS variables, keeping L_VOLUME and TYPE constant. This is the expected trend as when compared to ealier charts, such as the L_VOLUME vs. L_SHUCK by CLASS, an inverse relationship appears as the variable L_SHUCK increases as L_VOLUME increases when plotted by CLASS. Thus, the pattern seems to a sharp increase in shuck values as one progresses through the classes, then flattens or begins to slightly decrease in the higher A4-A5 classes.***
+***Answer: The modeled estimated coefficients suggest a decrease in L_SHUCK for the higher CLASS variables, keeping L_VOLUME and TYPE constant. This is the expected trend as when compared to ealier charts, such as the L_VOLUME vs. L_SHUCK by CLASS, an inverse relationship appears as the variable L_SHUCK increases as L_VOLUME increases when plotted by CLASS. Thus, the pattern seems to be a sharp increase in shuck values as one progresses through the classes, then flattens or begins to slightly decrease in the higher A4-A5 classes. This trend reflects all carbon-based life as maturation is realized and end-of-life nears.***
 
 **Additional Essay Question:  Is TYPE an important predictor in this regression? (Hint:  This question is not asking if TYPE is statistically significant, but rather how it compares to the other independent variables in terms of its contribution to predictions of L_SHUCK for harvesting decisions.)  Explain your conclusion.**
 
-***Answer: In this linear regression model, having a p-value of 0.006180 TYPE plays a significant role as a predictor. In a comparison of coefficient estimates among others used in this model TYPE does not seem to be as significant as any of the CLASS variables. ***
+***Answer: In this linear regression model, having a p-value of 0.006180 TYPE plays a significant role as a predictor. In a comparison of coefficient estimates among others used in this model TYPE does not seem to be as significant as any of the CLASS variables, with the exception of CLASS A2. ***
 
 -----
 
@@ -235,12 +260,14 @@ The next two analysis steps involve an analysis of the residuals resulting from 
 
 ```{r Part_5a}
 
-s  <- rockchalk::skewness(model$residuals)
-k  <- rockchalk::kurtosis(model$residuals, excess = FALSE)
+s2 <- rockchalk::skewness(model$residuals)
 k2 <- rockchalk::kurtosis(model$residuals)
 
+paste("Skewness is:", round(s2, 3))
+paste("Kurtosis is:", round(k2, 3))
+
 par(mfrow = c(1, 2))
-hist(model$residuals, main = "Histogram of Residuals", xlab = "Residuals", col = "deepskyblue")
+hist(model$residuals, main = "Histogram of Residuals", xlab = "Residuals", col = "deepskyblue", ylim = c(0, 250))
 
 qqnorm(model$residuals, main = "Q-Q Plot", col = "burlywood4")
 qqline(model$residuals)
@@ -415,8 +442,8 @@ Code for calculating the adult harvest proportion is provided.
 tpr <- (1 - prop.adults)[which.max(smooth.difference)]
 fpr <- (1 - prop.infants)[which.max(smooth.difference)]
 
-paste("True positive rate:", tpr)
-paste("False positive rate:", fpr)
+paste("True positive rate:", round(tpr, 3))
+paste("False positive rate:", round(fpr, 3))
 
 ```
 
@@ -438,9 +465,9 @@ base_cutoff <- volume.value[volume.value > max(mydata[mydata$CLASS == "A1" &
 a1.infant <- with(mydata, max(VOLUME[CLASS == 'A1' & TYPE == 'I']))
 mydiff2 <- first(volume.value[volume.value > a1.infant])
 
-paste("Base cutoff value:", base_cutoff)
-paste("True positive rate:", (1 - prop.adults)[which(volume.value == mydiff2)])
-paste("False positive rate:", (1 - prop.infants)[which(volume.value == mydiff2)])
+paste("Base cutoff value:", round(base_cutoff, 3))
+paste("True positive rate:", round((1 - prop.adults)[which(volume.value == mydiff2)], 3))
+paste("False positive rate:", round((1 - prop.infants)[which(volume.value == mydiff2)], 3))
 
 ```
 
@@ -451,9 +478,9 @@ proportional_cutoff <- volume.value[which.min(abs(prop.adults - (1-prop.infants)
 
 mydiff3 <- volume.value[which.min(abs(prop.adults + prop.infants - 1))]
 
-paste("Proportional cutoff:", proportional_cutoff)
-paste("True positive rate:", (1 - prop.adults)[which(volume.value == mydiff3)])
-paste("False positive rate:", (1 - prop.infants)[which(volume.value == mydiff3)])
+paste("Proportional cutoff:", round(proportional_cutoff, 3))
+paste("True positive rate:", round((1 - prop.adults)[which(volume.value == mydiff3)], 3))
+paste("False positive rate:", round((1 - prop.infants)[which(volume.value == mydiff3)], 3))
 
 ```
 
@@ -499,7 +526,7 @@ ggplot(mapping = aes((1 - prop.infants), (1 - prop.adults))) +
 ```{r Part_9b}
 
 f <- flux::auc(x = (1 - prop.infants), y = (1 - prop.adults))
-paste("Area under ROC curve:", f)
+paste("Area under ROC curve:", round(f, 3))
 
 ```
 
@@ -526,7 +553,7 @@ tribble(~strategy, ~volume, ~TPR, ~FPR, ~PropYield,
  	
 **Essay Question: Based on the ROC curve, it is evident a wide range of possible "cutoffs" exist. Compare and discuss the three cutoffs determined in this assignment.**   
 
-***Answer: To achieve the highest harvest yield per proportion of 67.6%, the harvest would include all classes except A1 infants. However, the Zero A1 Infants strategy also involves the highest rate of error and the lowest volume. Conversely, the Max Difference strategy enjoys having the lowest false positive rate but carries with it the lowest proportional yield. The third strategy, Equal Error, splits the difference with a 62.4% proportional yield as well as a false positive error that resides comfortably in the middle. ***
+***Answer: This model has a score of 0.87 which equates to good measures of separability (max score is 1). To achieve the highest harvest yield per proportion of 67.6%, the harvest would include all classes except A1 infants. However, the Zero A1 Infants strategy also involves the highest rate of error and the lowest volume. Conversely, the Max Difference strategy enjoys having the lowest false positive rate but carries with it the lowest proportional yield. The third strategy, Equal Error, splits the difference with a 62.4% proportional yield as well as a false positive error that resides comfortably in the middle. ***
 
 
 **Final Essay Question:  Assume you are expected to make a presentation of your analysis to the investigators How would you do so?  Consider the following in your answer:**
